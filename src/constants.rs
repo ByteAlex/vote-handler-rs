@@ -39,22 +39,22 @@ lazy_static! {
     Authorization token provided in the Authorization header for vote/topgg endpoint
     */
     pub static ref VOTE_AUTH_TOKEN_TOPGG: String = var("VOTE_AUTH_TOKEN_TOPGG")
-        .unwrap_or("secret".to_owned());
+        .unwrap_or(VOTE_AUTH_TOKEN.clone());
     /**
     Authorization token provided in the Authorization header for vote/dbl endpoint
     */
     pub static ref VOTE_AUTH_TOKEN_DBL: String = var("VOTE_AUTH_TOKEN_DBL")
-        .unwrap_or("secret".to_owned());
+        .unwrap_or(VOTE_AUTH_TOKEN.clone());
     /**
     Authorization token provided in the Authorization header for vote/bfd endpoint
     */
     pub static ref VOTE_AUTH_TOKEN_BFD: String = var("VOTE_AUTH_TOKEN_BFD")
-        .unwrap_or("secret".to_owned());
+        .unwrap_or(VOTE_AUTH_TOKEN.clone());
     /**
     Authorization token provided in the Authorization header for vote/dboats endpoint
     */
     pub static ref VOTE_AUTH_TOKEN_DBOATS: String = var("VOTE_AUTH_TOKEN_DBOATS")
-        .unwrap_or("secret".to_owned());
+        .unwrap_or(VOTE_AUTH_TOKEN.clone());
 }
 
 pub static CACHE_TASK_OP_VOTE: u8 = 0;
