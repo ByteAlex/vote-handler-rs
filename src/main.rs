@@ -1,11 +1,12 @@
 use crate::vote_handler::VoteHandler;
 use warp::Filter;
-use crate::vote_request::VoteRequest;
+use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest};
 use crate::cache_task::CacheTask;
 use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, VOTE_AUTH_TOKEN};
 use warp::http::StatusCode;
 use tokio::sync::mpsc::Sender;
 use log::{info, debug, warn};
+use crate::snowflake::Snowflake;
 
 mod snowflake;
 mod vote_request;
@@ -19,15 +20,6 @@ async fn main() {
     env_logger::init();
     info!("Starting vote-handler using proxy url {}", constants::VOTE_ENDPOINT.clone().as_str());
     let (tx, mut rx) = tokio::sync::mpsc::channel(128);
-
-    let rest_tx = tx.clone();
-    let vote = warp::path("vote")
-        .and(warp::header("authorization"))
-        .and(warp::body::json())
-        .and(warp::any().map(move || { rest_tx.clone() }))
-        .and_then(|authorization: String, body: VoteRequest, tx: Sender<CacheTask>| async move {
-            return process_vote_request(tx, authorization, body).await;
-        });
 
     let mut scheduler_tx = tx.clone();
     tokio::spawn(async move {
@@ -59,21 +51,72 @@ async fn main() {
             }
         }
     });
+
+    let rest_tx = tx.clone();
+    let generic_vote = warp::path!("vote" / "generic")
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|authorization: String, body: VoteRequest, tx: Sender<CacheTask>| async move {
+            return process_vote_request(tx, authorization, body).await;
+        });
+    let rest_tx = tx.clone();
+    let top_vote = warp::path!("vote" / "top")
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|authorization: String, body: TopVoteRequest, tx: Sender<CacheTask>| async move {
+            return process_vote_request(tx, authorization, body).await;
+        });
+    let rest_tx = tx.clone();
+    let bfd_vote = warp::path!("vote" / "bfd")
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|authorization: String, body: BfdVoteRequest, tx: Sender<CacheTask>| async move {
+            return process_vote_request(tx, authorization, body).await;
+        });
+    let rest_tx = tx.clone();
+    let dbl_vote = warp::path!("vote" / "dbl" / u64)
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|param: u64, authorization: String, mut body: DblComVoteRequest, tx: Sender<CacheTask>| async move {
+            body.bot = Some(Snowflake(param));
+            return process_vote_request(tx, authorization, body).await;
+        });
+    let rest_tx = tx.clone();
+    let dboats_vote = warp::path!("vote" / "dboats" / u64)
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|param: u64, authorization: String, mut body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
+            body.bot = Some(Snowflake(param));
+            return process_vote_request(tx, authorization, body).await;
+        });
+
     info!("Starting rest server");
-    warp::serve(vote).run(([0, 0, 0, 0], 8080)).await;
+    warp::serve(warp::post().and(generic_vote.or(top_vote).or(bfd_vote).or(dbl_vote).or(dboats_vote)))
+        .run(([0, 0, 0, 0], 8080))
+        .await;
 }
 
-async fn process_vote_request(mut sender: Sender<CacheTask>, auth: String, vote: VoteRequest)
-                              -> Result<Box<dyn warp::Reply>, warp::Rejection> {
+async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V)
+                                       -> Result<Box<dyn warp::Reply>, warp::Rejection> {
+    let vote = map_request(generic_vote);
     return if auth.starts_with(VOTE_AUTH_TOKEN.clone().as_str()) {
         let result = sender.send(CacheTask::create_vote_task(auth, vote)).await;
         if result.is_ok() {
-            Ok(Box::new("OK"))
+            Ok(Box::new(r#"{"status":"OK"}"#))
         } else {
             Err(warp::reject::not_found())
         }
     } else {
         Ok(Box::new(StatusCode::UNAUTHORIZED))
     };
+}
+
+fn map_request<V: Vote>(vote: V) -> VoteRequest {
+    return vote.get_as_generic();
 }
 
