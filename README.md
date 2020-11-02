@@ -8,6 +8,8 @@ a load-balancer to achieve high-availability.
 ## Env vars
 * RUST_LOG | Set logging level
 * VOTE_ENDPOINT | (Mandatory) Set the endpoint to proxy requests to
+* VOTE_ENDPOINT_AUTH_TOKEN | Set the token provided to the endpoint in Authorization header, 
+defaults from VOTE_AUTH_TOKEN
 * VOTE_AUTH_TOKEN | The token provided in Authorization header to 
 validate requests
 * VOTE_RESEND_DELAY | The interval in seconds between resend 
