@@ -68,7 +68,7 @@ async fn process_vote_request(mut sender: Sender<CacheTask>, auth: String, vote:
     return if auth.starts_with(VOTE_AUTH_TOKEN.clone().as_str()) {
         let result = sender.send(CacheTask::create_vote_task(auth, vote)).await;
         if result.is_ok() {
-            Ok(Box::new("Ok"))
+            Ok(Box::new("OK"))
         } else {
             Err(warp::reject::not_found())
         }

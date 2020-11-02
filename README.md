@@ -16,3 +16,7 @@ validate requests
 executions, default 5
 * VOTE_RESEND_BULK_COUNT | The amount of requests per resend-execution, 
 default 100
+
+## Usage
+Your endpoint has to return a Status-Code 200 with the response ``{"status":"OK"}``, 
+at least the `status`-node with the value `Ok` must be present.
