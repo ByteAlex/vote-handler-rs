@@ -47,15 +47,12 @@ impl VoteHandler {
     pub async fn resend_votes(&mut self) {
         debug!("Resending votes...");
         let start = SystemTime::now();
-        let mut poll = self.cache.poll();
         let mut count: u32 = 0;
-        while poll.is_some() {
-            let vote = poll.unwrap();
+        while let Some(vote) = self.cache.poll() {
             if !self.forward_vote(vote.clone()).await {
                 self.cache.return_failed_retry(vote);
                 break;
             }
-            poll = self.cache.poll();
             count = count + 1;
             if count >= *VOTE_RESEND_BULK_COUNT {
                 break;

@@ -30,5 +30,5 @@ lazy_static! {
         .unwrap_or(100);
 }
 
-pub static CACHE_TASK_OP_VOTE: i32 = 0;
-pub static CACHE_TASK_OP_RESEND: i32 = 1;
+pub static CACHE_TASK_OP_VOTE: u8 = 0;
+pub static CACHE_TASK_OP_RESEND: u8 = 1;

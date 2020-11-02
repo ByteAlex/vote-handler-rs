@@ -2,7 +2,7 @@ use crate::vote_request::VoteRequest;
 use crate::constants::{CACHE_TASK_OP_RESEND, CACHE_TASK_OP_VOTE};
 
 pub struct CacheTask {
-    pub op: i32,
+    pub op: u8,
     pub auth: Option<String>,
     pub vote: Option<VoteRequest>,
     pub msg: Option<String>,
