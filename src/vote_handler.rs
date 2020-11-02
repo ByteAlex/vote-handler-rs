@@ -1,4 +1,4 @@
-use crate::constants::{VOTE_ENDPOINT, VOTE_AUTH_TOKEN, VOTE_RESEND_BULK_COUNT};
+use crate::constants::{VOTE_ENDPOINT, VOTE_ENDPOINT_AUTH_TOKEN, VOTE_AUTH_TOKEN, VOTE_RESEND_BULK_COUNT};
 use crate::vote_cache::VoteCache;
 use crate::vote_request::VoteRequest;
 use serde::{Serialize, Deserialize};
@@ -68,7 +68,7 @@ impl VoteHandler {
         let start = SystemTime::now();
         let serialized_vote = serde_json::to_string(&vote).unwrap();
         let response = self.http_client.post(VOTE_ENDPOINT.clone().as_str())
-            .header("Authorization", VOTE_AUTH_TOKEN.clone().as_str())
+            .header("Authorization", VOTE_ENDPOINT_AUTH_TOKEN.clone().as_str())
             .body(serialized_vote)
             .send()
             .await;
