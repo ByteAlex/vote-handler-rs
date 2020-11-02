@@ -52,6 +52,7 @@ async fn main() {
         }
     });
 
+    let options = warp::options().map(|| { Ok(Box::new("OPTIONS")) });
     let rest_tx = tx.clone();
     let generic_vote = warp::path!("vote" / "generic")
         .and(warp::header("authorization"))
@@ -96,7 +97,7 @@ async fn main() {
         });
 
     info!("Starting rest server");
-    warp::serve(warp::post().and(generic_vote.or(top_vote).or(bfd_vote).or(dbl_vote).or(dboats_vote)))
+    warp::serve(options.or(warp::post().and(generic_vote.or(top_vote).or(bfd_vote).or(dbl_vote).or(dboats_vote))))
         .run(([0, 0, 0, 0], 8080))
         .await;
 }
