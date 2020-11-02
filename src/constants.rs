@@ -13,7 +13,7 @@ lazy_static! {
     Authorization token provided to the endpoint in Authorization header
     */
     pub static ref VOTE_ENDPOINT_AUTH_TOKEN: String = var("VOTE_ENDPOINT_AUTH_TOKEN")
-        .unwrap_or(var("VOTE_AUTH_TOKEN").unwrap_or("secret".to_owner()));
+        .unwrap_or(var("VOTE_AUTH_TOKEN").unwrap_or("secret".to_owned()));
 
     /**
     Authorization token provided in the Authorization header
