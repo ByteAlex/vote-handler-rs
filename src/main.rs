@@ -2,7 +2,7 @@ use crate::vote_handler::VoteHandler;
 use warp::Filter;
 use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest};
 use crate::cache_task::CacheTask;
-use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, VOTE_AUTH_TOKEN};
+use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND};
 use warp::http::StatusCode;
 use tokio::sync::mpsc::Sender;
 use log::{info, debug, warn};
@@ -44,7 +44,7 @@ async fn main() {
                 let task = rec.unwrap();
                 if task.op == CACHE_TASK_OP_VOTE {
                     vote_handler
-                        .accept_vote_request(task.auth.unwrap(), task.vote.unwrap()).await;
+                        .accept_vote_request(task.vote.unwrap()).await;
                 } else if task.op == CACHE_TASK_OP_RESEND {
                     vote_handler.resend_votes().await;
                 }
@@ -104,7 +104,8 @@ async fn main() {
 async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V)
                                        -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let vote = map_request(generic_vote);
-    return if auth.starts_with(VOTE_AUTH_TOKEN.clone().as_str()) {
+    let expected_auth = get_auth(vote.clone());
+    return if auth.eq(expected_auth.as_str()) {
         let result = sender.send(CacheTask::create_vote_task(auth, vote)).await;
         if result.is_ok() {
             Ok(Box::new(r#"{"status":"OK"}"#))
@@ -112,11 +113,25 @@ async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: Stri
             Err(warp::reject::not_found())
         }
     } else {
+        warn!("Dropping unauthorized request!");
         Ok(Box::new(StatusCode::UNAUTHORIZED))
     };
 }
 
 fn map_request<V: Vote>(vote: V) -> VoteRequest {
     return vote.get_as_generic();
+}
+
+pub fn get_auth(vote: VoteRequest) -> String {
+    if vote.src.is_none() {
+        return constants::VOTE_AUTH_TOKEN.clone();
+    }
+    return match vote.src.unwrap().as_str() {
+        "dbl" => constants::VOTE_AUTH_TOKEN_TOPGG.clone(),
+        "dbl2" => constants::VOTE_AUTH_TOKEN_DBL.clone(),
+        "bfd" => constants::VOTE_AUTH_TOKEN_BFD.clone(),
+        "dboats" => constants::VOTE_AUTH_TOKEN_DBOATS.clone(),
+        _ => constants::VOTE_AUTH_TOKEN.clone(),
+    };
 }
 

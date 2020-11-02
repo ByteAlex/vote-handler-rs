@@ -1,4 +1,4 @@
-use crate::constants::{VOTE_ENDPOINT, VOTE_ENDPOINT_AUTH_TOKEN, VOTE_AUTH_TOKEN, VOTE_RESEND_BULK_COUNT};
+use crate::constants::{VOTE_ENDPOINT, VOTE_ENDPOINT_AUTH_TOKEN, VOTE_RESEND_BULK_COUNT};
 use crate::vote_cache::VoteCache;
 use crate::vote_request::VoteRequest;
 use serde::{Serialize, Deserialize};
@@ -28,12 +28,8 @@ impl VoteHandler {
         };
     }
 
-    pub async fn accept_vote_request(&mut self, auth: String, vote: VoteRequest) {
+    pub async fn accept_vote_request(&mut self, vote: VoteRequest) {
         let start = SystemTime::now();
-        if !auth.eq(VOTE_AUTH_TOKEN.clone().as_str()) {
-            warn!("Dropping unauthorized vote");
-            return;
-        }
         if !self.forward_vote(vote.clone()).await {
             warn!("Adding send-failed vote to cache!");
             self.cache.cache_failed_vote(vote.clone());
