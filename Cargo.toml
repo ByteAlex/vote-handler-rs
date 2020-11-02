@@ -1,0 +1,17 @@
+[package]
+name = "vote-handler"
+version = "0.1.0"
+authors = ["ByteAlex <bytealex@zerotwo.bot>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "0.2", features = ["full"] }
+warp = "0.2"
+reqwest = "0.10.8"
+serde = {version = "1.0.113", features = ["derive"] }
+serde_json = "1.0.51"
+log = "0.4.11"
+env_logger = "0.8.1"
+lazy_static = "1.4.0"
