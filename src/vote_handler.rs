@@ -37,7 +37,8 @@ impl VoteHandler {
         let elapsed_ms = start.elapsed()
             .map(|duration| { duration.as_millis() })
             .unwrap_or(0);
-        info!("Processed vote request from {} in {}ms", vote.user.0.to_string().as_str(), elapsed_ms);
+        info!("Processed vote request from {} via {} in {}ms", vote.user.0.to_string().as_str(),
+              vote.src.unwrap_or("dbl".to_owned()).as_str(), elapsed_ms);
     }
 
     pub async fn resend_votes(&mut self) {
