@@ -1,7 +1,6 @@
 use crate::vote_handler::VoteHandler;
 use warp::Filter;
 use crate::vote_request::VoteRequest;
-use tokio::time::Duration;
 use crate::cache_task::CacheTask;
 use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, VOTE_AUTH_TOKEN};
 use warp::http::StatusCode;
@@ -39,7 +38,7 @@ async fn main() {
             if result.is_err() {
                 warn!("Failed to start resend task")
             }
-            tokio::time::delay_for(Duration::from_secs(5)).await;
+            tokio::time::delay_for(*constants::VOTE_RESEND_DELAY).await;
         }
     });
 

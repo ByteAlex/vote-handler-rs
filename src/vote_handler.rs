@@ -1,4 +1,4 @@
-use crate::constants::{VOTE_ENDPOINT, VOTE_AUTH_TOKEN};
+use crate::constants::{VOTE_ENDPOINT, VOTE_AUTH_TOKEN, VOTE_RESEND_BULK_COUNT};
 use crate::vote_cache::VoteCache;
 use crate::vote_request::VoteRequest;
 use serde::{Serialize, Deserialize};
@@ -48,7 +48,7 @@ impl VoteHandler {
         debug!("Resending votes...");
         let start = SystemTime::now();
         let mut poll = self.cache.poll();
-        let mut count: u16 = 0;
+        let mut count: u32 = 0;
         while poll.is_some() {
             let vote = poll.unwrap();
             if !self.forward_vote(vote.clone()).await {
@@ -57,7 +57,7 @@ impl VoteHandler {
             }
             poll = self.cache.poll();
             count = count + 1;
-            if count >= 100 {
+            if count >= *VOTE_RESEND_BULK_COUNT {
                 break;
             }
         }
