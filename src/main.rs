@@ -61,7 +61,7 @@ async fn main() {
             return process_vote_request(tx, authorization, body).await;
         });
     let rest_tx = tx.clone();
-    let top_vote = warp::path!("vote" / "top")
+    let top_vote = warp::path!("vote" / "topgg")
         .and(warp::header("authorization"))
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
