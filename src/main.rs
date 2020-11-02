@@ -2,7 +2,7 @@ use crate::vote_handler::VoteHandler;
 use warp::Filter;
 use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest};
 use crate::cache_task::CacheTask;
-use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND};
+use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, PAGE_KEY_TOPGG, PAGE_KEY_DBL, PAGE_KEY_BFD, PAGE_KEY_DBOATS};
 use warp::http::StatusCode;
 use tokio::sync::mpsc::Sender;
 use log::{info, debug, warn};
@@ -128,10 +128,10 @@ pub fn get_auth(vote: VoteRequest) -> String {
         return constants::VOTE_AUTH_TOKEN.clone();
     }
     return match vote.src.unwrap().as_str() {
-        "dbl" => constants::VOTE_AUTH_TOKEN_TOPGG.clone(),
-        "dbl2" => constants::VOTE_AUTH_TOKEN_DBL.clone(),
-        "bfd" => constants::VOTE_AUTH_TOKEN_BFD.clone(),
-        "dboats" => constants::VOTE_AUTH_TOKEN_DBOATS.clone(),
+        PAGE_KEY_TOPGG => constants::VOTE_AUTH_TOKEN_TOPGG.clone(),
+        PAGE_KEY_DBL => constants::VOTE_AUTH_TOKEN_DBL.clone(),
+        PAGE_KEY_BFD => constants::VOTE_AUTH_TOKEN_BFD.clone(),
+        PAGE_KEY_DBOATS => constants::VOTE_AUTH_TOKEN_DBOATS.clone(),
         _ => constants::VOTE_AUTH_TOKEN.clone(),
     };
 }

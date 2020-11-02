@@ -1,4 +1,5 @@
 use crate::snowflake::Snowflake;
+use crate::constants::{PAGE_KEY_TOPGG, PAGE_KEY_DBL, PAGE_KEY_BFD, PAGE_KEY_DBOATS};
 use serde::{Serialize, Deserialize};
 
 pub trait Vote {
@@ -68,7 +69,7 @@ impl Vote for VoteRequest {
     }
 
     fn get_source(&self) -> String {
-        return self.src.clone().unwrap_or("dbl".to_owned());
+        return self.src.clone().unwrap_or(PAGE_KEY_TOPGG.to_owned());
     }
 
     fn get_as_generic(&self) -> VoteRequest {
@@ -93,7 +94,7 @@ impl Vote for TopVoteRequest {
     }
 
     fn get_source(&self) -> String {
-        return "dbl".to_owned();
+        return PAGE_KEY_TOPGG.to_owned();
     }
 
     fn get_as_generic(&self) -> VoteRequest {
@@ -118,7 +119,7 @@ impl Vote for DblComVoteRequest {
     }
 
     fn get_source(&self) -> String {
-        return "dbl2".to_owned();
+        return PAGE_KEY_DBL.to_owned();
     }
 
     fn get_as_generic(&self) -> VoteRequest {
@@ -143,7 +144,7 @@ impl Vote for BfdVoteRequest {
     }
 
     fn get_source(&self) -> String {
-        return "bfd".to_owned();
+        return PAGE_KEY_BFD.to_owned();
     }
 
     fn get_as_generic(&self) -> VoteRequest {
@@ -168,7 +169,7 @@ impl Vote for DBoatsVoteRequest {
     }
 
     fn get_source(&self) -> String {
-        return "dboats".to_owned();
+        return PAGE_KEY_DBOATS.to_owned();
     }
 
     fn get_as_generic(&self) -> VoteRequest {
