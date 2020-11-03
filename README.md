@@ -16,20 +16,23 @@ executions, default 5
 default 100
 * VOTE_AUTH_TOKEN | The token provided in Authorization header to validate requests
 against on vote/generic endpoint
-* VOTE_AUTH_TOKEN_TOPGG | The token provided in Authorization header to validate requests
-against on vote/topgg endpoint
+* VOTE_AUTH_TOKEN_TOPGG | The token provided in Authorization header to validate 
+requests against on vote/topgg endpoint
 * VOTE_AUTH_TOKEN_DBL | The token provided in Authorization header to validate requests
 against on vote/dbl/{botid} endpoint
 * VOTE_AUTH_TOKEN_BFD | The token provided in Authorization header to validate requests
 against on vote/bfd endpoint
-* VOTE_AUTH_TOKEN_DBOATS | The token provided in Authorization header to validate requests
-against on vote/dboats/{botid} endpoint
+* VOTE_AUTH_TOKEN_DBOATS | The token provided in Authorization header to validate 
+requests against on vote/dboats/{botid} endpoint
 
 ## Usage
 Your endpoint has to return a Status-Code 200 with the response ``{"status":"OK"}``, 
 at least the `status`-node with the value `Ok` must be present.
 
-The vote-handler proxy exposes 5 different endpoints:
+This service `POST`s to the given `VOTE_ENDPOINT` with `VOTE_ENDPOINT_AUTH_TOKEN` in 
+the `Authorization` header.
+
+The vote-handler proxy exposes 5 different endpoints for various bot-lists:
 * vote/generic
 * vote/topgg
 * vote/dbl/{botid}
@@ -39,6 +42,8 @@ The vote-handler proxy exposes 5 different endpoints:
 The requests will be accepted and unified to the following struct:
 
 ```rust
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct VoteRequest {
     pub bot: Snowflake,
     pub user: Snowflake,
@@ -48,3 +53,13 @@ pub struct VoteRequest {
     pub src: Option<String>,
 }
 ```
+
+Possible values for `src` are the same as the endpoints:
+* topgg
+* dbl
+* bfd
+* dboats
+
+`isWeekend` will default to false if it's not set, as only topgg sends this.
+
+`type` will be either `"vote"` or `"test"`.
