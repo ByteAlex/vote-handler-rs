@@ -59,7 +59,7 @@ lazy_static! {
 
 pub const CACHE_TASK_OP_VOTE: u8 = 0;
 pub const CACHE_TASK_OP_RESEND: u8 = 1;
-pub const PAGE_KEY_TOPGG: &str = "dbl";
-pub const PAGE_KEY_DBL: &str = "dbl2";
+pub const PAGE_KEY_TOPGG: &str = "topgg";
+pub const PAGE_KEY_DBL: &str = "dbl";
 pub const PAGE_KEY_BFD: &str = "bfd";
 pub const PAGE_KEY_DBOATS: &str = "dboats";
