@@ -92,7 +92,7 @@ async fn main() {
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|param: u64, authorization: String, mut body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
-            body.bot = Some(Snowflake(param));
+            body.bot_id = Some(Snowflake(param));
             return process_vote_request(tx, authorization, body).await;
         });
 
