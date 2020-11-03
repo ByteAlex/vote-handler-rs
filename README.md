@@ -33,11 +33,11 @@ This service `POST`s to the given `VOTE_ENDPOINT` with `VOTE_ENDPOINT_AUTH_TOKEN
 the `Authorization` header.
 
 The vote-handler proxy exposes 5 different endpoints for various bot-lists:
-* vote/generic
-* vote/topgg
-* vote/dbl/{botid}
-* vote/bfd
-* vote/dboats/{botid}
+* /vote/generic
+* /vote/topgg
+* /vote/dbl/{botid}
+* /vote/bfd
+* /vote/dboats/{botid}
 
 The requests will be accepted and unified to the following struct:
 

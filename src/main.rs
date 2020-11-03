@@ -59,7 +59,7 @@ async fn main() {
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|authorization: String, body: VoteRequest, tx: Sender<CacheTask>| async move {
-            return process_vote_request(tx, authorization, body).await;
+            return process_vote_request(tx, authorization, body, true).await;
         });
     let rest_tx = tx.clone();
     let top_vote = warp::path!("vote" / "topgg")
@@ -67,7 +67,7 @@ async fn main() {
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|authorization: String, body: TopVoteRequest, tx: Sender<CacheTask>| async move {
-            return process_vote_request(tx, authorization, body).await;
+            return process_vote_request(tx, authorization, body, false).await;
         });
     let rest_tx = tx.clone();
     let bfd_vote = warp::path!("vote" / "bfd")
@@ -75,7 +75,7 @@ async fn main() {
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|authorization: String, body: BfdVoteRequest, tx: Sender<CacheTask>| async move {
-            return process_vote_request(tx, authorization, body).await;
+            return process_vote_request(tx, authorization, body, false).await;
         });
     let rest_tx = tx.clone();
     let dbl_vote = warp::path!("vote" / "dbl" / u64)
@@ -84,7 +84,7 @@ async fn main() {
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|param: u64, authorization: String, mut body: DblComVoteRequest, tx: Sender<CacheTask>| async move {
             body.bot = Some(Snowflake(param));
-            return process_vote_request(tx, authorization, body).await;
+            return process_vote_request(tx, authorization, body, false).await;
         });
     let rest_tx = tx.clone();
     let dboats_vote = warp::path!("vote" / "dboats" / u64)
@@ -93,7 +93,7 @@ async fn main() {
         .and(warp::any().map(move || { rest_tx.clone() }))
         .and_then(|param: u64, authorization: String, mut body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
             body.bot_id = Some(Snowflake(param));
-            return process_vote_request(tx, authorization, body).await;
+            return process_vote_request(tx, authorization, body, false).await;
         });
 
     info!("Starting rest server");
@@ -102,10 +102,16 @@ async fn main() {
         .await;
 }
 
-async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V)
+async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V,
+                                       generic: bool)
                                        -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let vote = map_request(generic_vote);
-    let expected_auth = get_auth(vote.clone());
+    let expected_auth;
+    if generic {
+        expected_auth = constants::VOTE_AUTH_TOKEN.clone();
+    } else {
+        expected_auth = get_auth(vote.clone());
+    }
     return if auth.eq(expected_auth.as_str()) {
         let result = sender.send(CacheTask::create_vote_task(auth, vote)).await;
         if result.is_ok() {
