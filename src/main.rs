@@ -94,6 +94,7 @@ async fn main() {
         .and_then(|authorization: String, body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
             return process_vote_request(tx, authorization, body, false).await;
         });
+    let rest_tx = tx.clone();
     let dboats_vote_old = warp::path!("vote" / "dboats" / u64)
         .and(warp::header("authorization"))
         .and(warp::body::json())

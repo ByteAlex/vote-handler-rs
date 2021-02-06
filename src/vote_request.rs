@@ -166,7 +166,7 @@ impl Vote for BfdVoteRequest {
 
 impl Vote for DBoatsVoteRequest {
     fn get_bot(&self) -> Snowflake {
-        return self.bot.map(|opt| { opt.id }).unwrap_or(Snowflake(0));
+        return self.bot.as_ref().map_or(Snowflake(0), |opt| { opt.id });
     }
 
     fn get_user(&self) -> Snowflake {
