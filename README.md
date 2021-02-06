@@ -23,7 +23,7 @@ against on vote/dbl/{botid} endpoint
 * VOTE_AUTH_TOKEN_BFD | The token provided in Authorization header to validate requests
 against on vote/bfd endpoint
 * VOTE_AUTH_TOKEN_DBOATS | The token provided in Authorization header to validate 
-requests against on vote/dboats/{botid} endpoint
+requests against on vote/dboats endpoint
 
 ## Usage
 Your endpoint has to return a Status-Code 200 with the response ``{"status":"OK"}``, 
@@ -37,7 +37,7 @@ The vote-handler proxy exposes 5 different endpoints for various bot-lists:
 * /vote/topgg
 * /vote/dbl/{botid}
 * /vote/bfd
-* /vote/dboats/{botid}
+* /vote/dboats
 
 The requests will be accepted and unified to the following struct:
 
