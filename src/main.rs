@@ -21,7 +21,7 @@ async fn main() {
     info!("Starting vote-handler using proxy url {}", constants::VOTE_ENDPOINT.clone().as_str());
     let (tx, mut rx) = tokio::sync::mpsc::channel(128);
 
-    let mut scheduler_tx = tx.clone();
+    let scheduler_tx = tx.clone();
     tokio::spawn(async move {
         info!("Started resend scheduler");
         loop {
@@ -30,7 +30,7 @@ async fn main() {
             if result.is_err() {
                 warn!("Failed to start resend task")
             }
-            tokio::time::delay_for(*constants::VOTE_RESEND_DELAY).await;
+            tokio::time::sleep(*constants::VOTE_RESEND_DELAY).await;
         }
     });
 
@@ -87,12 +87,11 @@ async fn main() {
             return process_vote_request(tx, authorization, body, false).await;
         });
     let rest_tx = tx.clone();
-    let dboats_vote = warp::path!("vote" / "dboats" / u64)
+    let dboats_vote = warp::path!("vote" / "dboats")
         .and(warp::header("authorization"))
         .and(warp::body::json())
         .and(warp::any().map(move || { rest_tx.clone() }))
-        .and_then(|param: u64, authorization: String, mut body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
-            body.bot_id = Some(Snowflake(param));
+        .and_then(|authorization: String, body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
             return process_vote_request(tx, authorization, body, false).await;
         });
 
@@ -102,7 +101,7 @@ async fn main() {
         .await;
 }
 
-async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V,
+async fn process_vote_request<V: Vote>(sender: Sender<CacheTask>, auth: String, generic_vote: V,
                                        generic: bool)
                                        -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let vote = map_request(generic_vote);

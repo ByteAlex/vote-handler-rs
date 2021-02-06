@@ -44,16 +44,23 @@ pub struct BfdVoteRequest {
     pub r#type: String,
 }
 
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DBoatsBotData {
+    pub id: Snowflake,
+    pub name: String,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DBoatsUserData {
     pub id: Snowflake,
     pub username: String,
-    pub discriminator: String,
+    pub discriminator: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DBoatsVoteRequest {
-    pub bot_id: Option<Snowflake>,
+    pub bot: DBoatsBotData,
     pub user: DBoatsUserData,
 }
 
@@ -159,7 +166,7 @@ impl Vote for BfdVoteRequest {
 
 impl Vote for DBoatsVoteRequest {
     fn get_bot(&self) -> Snowflake {
-        return self.bot_id.unwrap_or(Snowflake(0));
+        return self.bot.id;
     }
 
     fn get_user(&self) -> Snowflake {
