@@ -21,7 +21,7 @@ async fn main() {
     info!("Starting vote-handler using proxy url {}", constants::VOTE_ENDPOINT.clone().as_str());
     let (tx, mut rx) = tokio::sync::mpsc::channel(128);
 
-    let mut scheduler_tx = tx.clone();
+    let scheduler_tx = tx.clone();
     tokio::spawn(async move {
         info!("Started resend scheduler");
         loop {
@@ -30,7 +30,7 @@ async fn main() {
             if result.is_err() {
                 warn!("Failed to start resend task")
             }
-            tokio::time::delay_for(*constants::VOTE_RESEND_DELAY).await;
+            tokio::time::sleep(*constants::VOTE_RESEND_DELAY).await;
         }
     });
 
@@ -101,7 +101,7 @@ async fn main() {
         .await;
 }
 
-async fn process_vote_request<V: Vote>(mut sender: Sender<CacheTask>, auth: String, generic_vote: V,
+async fn process_vote_request<V: Vote>(sender: Sender<CacheTask>, auth: String, generic_vote: V,
                                        generic: bool)
                                        -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let vote = map_request(generic_vote);
