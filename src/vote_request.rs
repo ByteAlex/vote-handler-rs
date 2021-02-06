@@ -34,7 +34,7 @@ pub struct TopVoteRequest {
 pub struct DblComVoteRequest {
     pub bot: Option<Snowflake>,
     pub id: Snowflake,
-    pub username: u8,
+    pub username: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
