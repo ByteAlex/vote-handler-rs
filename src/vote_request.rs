@@ -60,7 +60,7 @@ pub struct DBoatsUserData {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DBoatsVoteRequest {
-    pub bot: DBoatsBotData,
+    pub bot: Option<DBoatsBotData>,
     pub user: DBoatsUserData,
 }
 

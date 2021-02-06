@@ -1,6 +1,6 @@
 use crate::vote_handler::VoteHandler;
 use warp::Filter;
-use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest};
+use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest, DBoatsBotData};
 use crate::cache_task::CacheTask;
 use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, PAGE_KEY_TOPGG, PAGE_KEY_DBL, PAGE_KEY_BFD, PAGE_KEY_DBOATS};
 use warp::http::StatusCode;
@@ -94,9 +94,21 @@ async fn main() {
         .and_then(|authorization: String, body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
             return process_vote_request(tx, authorization, body, false).await;
         });
+    let dboats_vote_old = warp::path!("vote" / "dboats" / u64)
+        .and(warp::header("authorization"))
+        .and(warp::body::json())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|param: u64, authorization: String, mut body: DBoatsVoteRequest, tx: Sender<CacheTask>| async move {
+            body.bot = Some(DBoatsBotData {
+                id: Snowflake(param),
+                name: "Bot".to_owned()
+            });
+            return process_vote_request(tx, authorization, body, false).await;
+        });
 
     info!("Starting rest server");
-    warp::serve(options.or(warp::post().and(generic_vote.or(top_vote).or(bfd_vote).or(dbl_vote).or(dboats_vote))))
+    warp::serve(options.or(warp::post().and(generic_vote.or(top_vote)
+        .or(bfd_vote).or(dbl_vote).or(dboats_vote).or(dboats_vote_old))))
         .run(([0, 0, 0, 0], 8080))
         .await;
 }
