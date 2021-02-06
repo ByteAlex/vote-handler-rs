@@ -55,7 +55,7 @@ pub struct DBoatsBotData {
 pub struct DBoatsUserData {
     pub id: Snowflake,
     pub username: String,
-    pub discriminator: u64,
+    pub discriminator: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
