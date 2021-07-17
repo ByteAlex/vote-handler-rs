@@ -82,7 +82,7 @@ impl Vote for VoteRequest {
             bot: self.get_bot(),
             user: self.get_user(),
             r#type: self.r#type.to_owned(),
-            is_weekend: self.is_weekend.unwrap_or(false),
+            is_weekend: self.is_weekend,
             query: self.query.to_owned(),
             src: Some(self.get_source()),
         };
@@ -107,7 +107,7 @@ impl Vote for TopVoteRequest {
             bot: self.get_bot(),
             user: self.get_user(),
             r#type: if self.r#type.eq("upvote") { "vote".to_owned() } else { self.r#type.to_owned() },
-            is_weekend: self.is_weekend,
+            is_weekend: self.is_weekend.unwrap_or(false),
             query: self.query.to_owned(),
             src: Some(self.get_source()),
         };
