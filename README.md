@@ -24,6 +24,8 @@ against on vote/dbl/{botid} endpoint
 against on vote/bfd endpoint
 * VOTE_AUTH_TOKEN_DBOATS | The token provided in Authorization header to validate 
 requests against on vote/dboats endpoint
+* VOTE_AUTH_TOKEN_DLIST | The token provided to sign JWT tokens for dlist request 
+bodies on the vote/dlist endpoint
 
 ## Usage
 Your endpoint has to return a Status-Code 200 with the response ``{"status":"OK"}``, 
@@ -38,6 +40,7 @@ The vote-handler proxy exposes 5 different endpoints for various bot-lists:
 * /vote/dbl/{botid}
 * /vote/bfd
 * /vote/dboats
+* /vote/dlist
 
 The requests will be accepted and unified to the following struct:
 
@@ -59,6 +62,7 @@ Possible values for `src` are the same as the endpoints:
 * dbl
 * bfd
 * dboats
+* dlist
 
 `isWeekend` will default to false if it's not set, as only topgg sends this.
 
