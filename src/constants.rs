@@ -1,6 +1,9 @@
 use std::env::var;
 use core::time::Duration;
+use hmac::digest::KeyInit;
+use hmac::Hmac;
 use lazy_static::lazy_static;
+use sha2::Sha256;
 
 lazy_static! {
     /**
@@ -55,6 +58,14 @@ lazy_static! {
     */
     pub static ref VOTE_AUTH_TOKEN_DBOATS: String = var("VOTE_AUTH_TOKEN_DBOATS")
         .unwrap_or(VOTE_AUTH_TOKEN.clone());
+    /**
+    The token (as string) provided to sign JWT tokens for dlist request bodies on the vote/dlist endpoint
+    */
+    pub static ref VOTE_AUTH_TOKEN_DLIST: String = var("VOTE_AUTH_TOKEN_DLIST").unwrap_or(VOTE_AUTH_TOKEN.clone());
+    /**
+    The key provided to sign JWT tokens for dlist request bodies on the vote/dlist endpoint
+     */
+    pub static ref VOTE_AUTH_KEY_DLIST: Hmac<Sha256> = Hmac::new_from_slice(VOTE_AUTH_TOKEN_DLIST.as_bytes()).unwrap();
 }
 
 pub const CACHE_TASK_OP_VOTE: u8 = 0;
@@ -63,3 +74,4 @@ pub const PAGE_KEY_TOPGG: &str = "topgg";
 pub const PAGE_KEY_DBL: &str = "dbl";
 pub const PAGE_KEY_BFD: &str = "bfd";
 pub const PAGE_KEY_DBOATS: &str = "dboats";
+pub const PAGE_KEY_DLIST: &str = "dlist";

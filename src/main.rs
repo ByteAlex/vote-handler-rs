@@ -1,11 +1,13 @@
+use std::ops::Deref;
 use crate::vote_handler::VoteHandler;
 use warp::Filter;
-use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest, DBoatsBotData};
+use crate::vote_request::{VoteRequest, Vote, TopVoteRequest, DblComVoteRequest, BfdVoteRequest, DBoatsVoteRequest, DBoatsBotData, DiscordListVoteRequest};
 use crate::cache_task::CacheTask;
-use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, PAGE_KEY_TOPGG, PAGE_KEY_DBL, PAGE_KEY_BFD, PAGE_KEY_DBOATS};
+use crate::constants::{CACHE_TASK_OP_VOTE, CACHE_TASK_OP_RESEND, PAGE_KEY_TOPGG, PAGE_KEY_DBL, PAGE_KEY_BFD, PAGE_KEY_DBOATS, PAGE_KEY_DLIST};
 use warp::http::StatusCode;
 use tokio::sync::mpsc::Sender;
 use log::{info, debug, warn};
+use warp::hyper::body::Bytes;
 use crate::snowflake::Snowflake;
 
 mod snowflake;
@@ -95,6 +97,27 @@ async fn main() {
             return process_vote_request(tx, authorization, body, false).await;
         });
     let rest_tx = tx.clone();
+    let dlist_vote = warp::path!("vote" / "dlist")
+        .and(warp::header("authorization"))
+        .and(warp::body::bytes())
+        .and(warp::any().map(move || { rest_tx.clone() }))
+        .and_then(|authorization: String, body: Bytes, tx: Sender<CacheTask>| async move {
+            use jwt::VerifyWithKey;
+            let content = String::from_utf8(body.to_vec()).expect("Failed to get body as text");
+
+            match content.verify_with_key(constants::VOTE_AUTH_KEY_DLIST.deref()) {
+                Ok(body) => {
+                    let body: DiscordListVoteRequest = body;
+                    process_vote_request(tx, authorization, body, false).await
+                }
+                Err(err) => {
+                    warn!("Failed to verify dlist request: {}", err);
+                    let res: Result<Box<dyn warp::Reply>, warp::Rejection> = Ok(Box::new(StatusCode::UNAUTHORIZED));
+                    res
+                }
+            }
+        });
+    let rest_tx = tx.clone();
     let dboats_vote_old = warp::path!("vote" / "dboats" / u64)
         .and(warp::header("authorization"))
         .and(warp::body::json())
@@ -109,7 +132,7 @@ async fn main() {
 
     info!("Starting rest server");
     warp::serve(options.or(warp::post().and(generic_vote.or(top_vote)
-        .or(bfd_vote).or(dbl_vote).or(dboats_vote).or(dboats_vote_old))))
+        .or(bfd_vote).or(dbl_vote).or(dlist_vote).or(dboats_vote).or(dboats_vote_old))))
         .run(([0, 0, 0, 0], 8080))
         .await;
 }
@@ -120,11 +143,11 @@ async fn process_vote_request<V: Vote>(sender: Sender<CacheTask>, auth: String, 
     let vote = map_request(generic_vote);
     let expected_auth;
     if generic {
-        expected_auth = constants::VOTE_AUTH_TOKEN.clone();
+        expected_auth = Some(constants::VOTE_AUTH_TOKEN.clone());
     } else {
         expected_auth = get_auth(vote.clone());
     }
-    return if auth.eq(expected_auth.as_str()) {
+    return if expected_auth.is_none() || auth.eq(expected_auth.unwrap().as_str()) {
         let result = sender.send(CacheTask::create_vote_task(auth, vote)).await;
         if result.is_ok() {
             Ok(Box::new(r#"{"status":"OK"}"#))
@@ -141,16 +164,16 @@ fn map_request<V: Vote>(vote: V) -> VoteRequest {
     return vote.get_as_generic();
 }
 
-pub fn get_auth(vote: VoteRequest) -> String {
+pub fn get_auth(vote: VoteRequest) -> Option<String> {
     if vote.src.is_none() {
-        return constants::VOTE_AUTH_TOKEN.clone();
+        return Some(constants::VOTE_AUTH_TOKEN.clone());
     }
     return match vote.src.unwrap().as_str() {
-        PAGE_KEY_TOPGG => constants::VOTE_AUTH_TOKEN_TOPGG.clone(),
-        PAGE_KEY_DBL => constants::VOTE_AUTH_TOKEN_DBL.clone(),
-        PAGE_KEY_BFD => constants::VOTE_AUTH_TOKEN_BFD.clone(),
-        PAGE_KEY_DBOATS => constants::VOTE_AUTH_TOKEN_DBOATS.clone(),
-        _ => constants::VOTE_AUTH_TOKEN.clone(),
+        PAGE_KEY_TOPGG => Some(constants::VOTE_AUTH_TOKEN_TOPGG.clone()),
+        PAGE_KEY_DBL => Some(constants::VOTE_AUTH_TOKEN_DBL.clone()),
+        PAGE_KEY_BFD => Some(constants::VOTE_AUTH_TOKEN_BFD.clone()),
+        PAGE_KEY_DBOATS => Some(constants::VOTE_AUTH_TOKEN_DBOATS.clone()),
+        PAGE_KEY_DLIST => None,
+        _ => Some(constants::VOTE_AUTH_TOKEN.clone()),
     };
 }
-
