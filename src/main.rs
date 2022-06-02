@@ -98,17 +98,16 @@ async fn main() {
         });
     let rest_tx = tx.clone();
     let dlist_vote = warp::path!("vote" / "dlist")
-        .and(warp::header("authorization"))
         .and(warp::body::bytes())
         .and(warp::any().map(move || { rest_tx.clone() }))
-        .and_then(|authorization: String, body: Bytes, tx: Sender<CacheTask>| async move {
+        .and_then(|body: Bytes, tx: Sender<CacheTask>| async move {
             use jwt::VerifyWithKey;
             let content = String::from_utf8(body.to_vec()).expect("Failed to get body as text");
 
             match content.verify_with_key(constants::VOTE_AUTH_KEY_DLIST.deref()) {
                 Ok(body) => {
                     let body: DiscordListVoteRequest = body;
-                    process_vote_request(tx, authorization, body, false).await
+                    process_vote_request(tx, "".to_owned(), body, false).await
                 }
                 Err(err) => {
                     warn!("Failed to verify dlist request: {}", err);
