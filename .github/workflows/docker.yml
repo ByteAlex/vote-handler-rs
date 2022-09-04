@@ -44,8 +44,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value={{sha}}-no-cache
-            type=raw,value=latest-no-cache
+            type=raw,value={{sha}}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.0.0
